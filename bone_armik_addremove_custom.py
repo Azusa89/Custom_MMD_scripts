@@ -142,7 +142,7 @@ def main(moreinfo=True):
 				#bones.append(jp_lowerbody)
 			# get parent of arm bone (shoulder bone), new bones will be inserted after this
 			shoulder_idx = bones[0].parent_idx
-			leg_idx = bones[5].parent_idx
+			leg_idx = bones[4].parent_idx
 
 			#CUSTOM BONES PROGRESS HERE
 			# new bones will be inserted AFTER shoulder_idx
@@ -252,37 +252,37 @@ def main(moreinfo=True):
 			bones.append(i)
 
 			newkneeik = pmxstruct.PmxBone(
-				name_jp=side + jp_knee_IK, name_en="" + en_suffix, pos=bones[1].pos,
+				name_jp=side + jp_knee_IK, name_en="" + en_suffix, pos=bones[4].pos,
 				parent_idx=mother, deform_layer=bones[2].deform_layer, deform_after_phys=bones[2].deform_after_phys,
 				has_rotate=True, has_translate=True, has_visible=True, has_enabled=True,
-				tail_usebonelink=False, tail=[0,0,-1], inherit_rot=False, inherit_trans=False,
+				tail_usebonelink=False, tail=[0,0,1], inherit_rot=False, inherit_trans=False,
 				has_fixedaxis=False, has_localaxis=False, has_externalparent=False, has_ik=True,
-				ik_target_idx=leg_idx+5, ik_numloops=newik_loops, ik_angle=newik_angle,
-				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx + 4)]
+				ik_target_idx=leg_idx+1, ik_numloops=newik_loops, ik_angle=newik_angle,
+				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx + 0)]
 			)
-			insert_single_bone(pmx, newkneeik, leg_idx + 9)
+			insert_single_bone(pmx, newkneeik, leg_idx + 4)
 
 			newlegik = pmxstruct.PmxBone(
-				name_jp=side + jp_thigh + IK_end, name_en="" + en_suffix, pos=bones[2].pos,
+				name_jp=side + jp_thigh + IK_end, name_en="" + en_suffix, pos=bones[5].pos,
 				parent_idx=mother, deform_layer=bones[2].deform_layer, deform_after_phys=bones[2].deform_after_phys,
 				has_rotate=True, has_translate=True, has_visible=True, has_enabled=True,
-				tail_usebonelink=False, tail=[0,0,-1], inherit_rot=False, inherit_trans=False,
+				tail_usebonelink=False, tail=[0,0,1], inherit_rot=False, inherit_trans=False,
 				has_fixedaxis=False, has_localaxis=False, has_externalparent=False, has_ik=True,
-				ik_target_idx=leg_idx+6, ik_numloops=newik_loops, ik_angle=newik_angle,
-				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx + 5)]
+				ik_target_idx=leg_idx+2, ik_numloops=newik_loops, ik_angle=newik_angle,
+				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx + 1)]
 			)
-			insert_single_bone(pmx, newlegik, leg_idx + 10)
+			insert_single_bone(pmx, newlegik, leg_idx + 5)
 
 			newfeetik = pmxstruct.PmxBone(
-				name_jp=side + jp_feet_IK, name_en="" + en_suffix, pos=bones[3].pos,
+				name_jp=side + jp_feet_IK, name_en="" + en_suffix, pos=bones[6].pos,
 				parent_idx=mother, deform_layer=bones[2].deform_layer, deform_after_phys=bones[2].deform_after_phys,
 				has_rotate=True, has_translate=True, has_visible=True, has_enabled=True,
-				tail_usebonelink=False, tail=[0,0,-1], inherit_rot=False, inherit_trans=False,
+				tail_usebonelink=False, tail=[0,-1,0], inherit_rot=False, inherit_trans=False,
 				has_fixedaxis=False, has_localaxis=False, has_externalparent=False, has_ik=True,
-				ik_target_idx=leg_idx+7, ik_numloops=newik_loops, ik_angle=newik_angle,
-				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx + 6)]
+				ik_target_idx=leg_idx+3, ik_numloops=newik_loops, ik_angle=newik_angle,
+				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx + 2)]
 			)
-			insert_single_bone(pmx, newfeetik, leg_idx + 11)
+			insert_single_bone(pmx, newfeetik, leg_idx + 6)
 
 			# then add to dispframe
 			# first, does the frame already exist?
