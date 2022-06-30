@@ -3,6 +3,7 @@
 #####################
 
 # first import system stuff
+import os
 from typing import List
 
 # second, wrap custom imports with a try-except to catch it if files are missing
@@ -84,7 +85,6 @@ jp_newik3 = "ひじＩＫ"
 en_newik2 = "elbowIK"
 en_newik3 = "elbowIK"
 en_lowerbody = "Pelvis"
-IK_end = "ＩＫ"
 jp_ik_dp = "IK"
 
 pmx_yesik_suffix = " IK.pmx"
@@ -92,6 +92,10 @@ pmx_noik_suffix =  " no-IK.pmx"
 
 endpoint_suffix_jp = "先"
 endpoint_suffix_en = " end"
+
+Knee_IK = "Knee IK"
+Leg_IK = "Leg IK"
+foot_IK = "Foot IK"
 
 def main(moreinfo=True):
 	# prompt PMX name
@@ -142,8 +146,6 @@ def main(moreinfo=True):
 				#bones.append(jp_lowerbody)
 			# get parent of arm bone (shoulder bone), new bones will be inserted after this
 			shoulder_idx = bones[0].parent_idx
-			leg_idx = bones[4].parent_idx
-
 			#CUSTOM BONES PROGRESS HERE
 			# new bones will be inserted AFTER shoulder_idx
 			# newarm_idx = shoulder_idx+1
@@ -241,91 +243,62 @@ def main(moreinfo=True):
 			)
 			insert_single_bone(pmx, newik, shoulder_idx + 4)
 
-			##Leg bone insert##
-			
-			bones: List[pmxstruct.PmxBone]
-			for n in [jp_thigh, jp_knee, jp_feet, jp_toe]:
-				i = core.my_list_search(pmx.bones, lambda x: x.name_jp == side + n, getitem=True)
-				if i is None:
-					core.MY_PRINT_FUNC("ERROR1: semistandard bone '%s' is missing from the model, unable to create attached arm IK" % (side + n))
-					raise RuntimeError()
-			bones.append(i)
+	##Leg bone insert##
 
-			newkneeik = pmxstruct.PmxBone(
-				name_jp=side + jp_knee_IK, name_en="" + en_suffix, pos=bones[4].pos,
-				parent_idx=mother, deform_layer=bones[2].deform_layer, deform_after_phys=bones[2].deform_after_phys,
-				has_rotate=True, has_translate=True, has_visible=True, has_enabled=True,
-				tail_usebonelink=False, tail=[0,0,1], inherit_rot=False, inherit_trans=False,
-				has_fixedaxis=False, has_localaxis=False, has_externalparent=False, has_ik=True,
-				ik_target_idx=leg_idx+1, ik_numloops=newik_loops, ik_angle=newik_angle,
-				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx + 0)]
-			)
-			insert_single_bone(pmx, newkneeik, leg_idx + 4)
-
-			newlegik = pmxstruct.PmxBone(
-				name_jp=side + jp_thigh + IK_end, name_en="" + en_suffix, pos=bones[5].pos,
-				parent_idx=mother, deform_layer=bones[2].deform_layer, deform_after_phys=bones[2].deform_after_phys,
-				has_rotate=True, has_translate=True, has_visible=True, has_enabled=True,
-				tail_usebonelink=False, tail=[0,0,1], inherit_rot=False, inherit_trans=False,
-				has_fixedaxis=False, has_localaxis=False, has_externalparent=False, has_ik=True,
-				ik_target_idx=leg_idx+2, ik_numloops=newik_loops, ik_angle=newik_angle,
-				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx + 1)]
-			)
-			insert_single_bone(pmx, newlegik, leg_idx + 5)
+			leg_idx = bones[6].parent_idx
 
 			newfeetik = pmxstruct.PmxBone(
-				name_jp=side + jp_feet_IK, name_en="" + en_suffix, pos=bones[6].pos,
-				parent_idx=mother, deform_layer=bones[2].deform_layer, deform_after_phys=bones[2].deform_after_phys,
+				name_jp=side + jp_feet_IK, name_en= foot_IK + en_suffix, pos=bones[6].pos,
+				parent_idx=mother, deform_layer=bones[6].deform_layer, deform_after_phys=bones[2].deform_after_phys,
 				has_rotate=True, has_translate=True, has_visible=True, has_enabled=True,
 				tail_usebonelink=False, tail=[0,-1,0], inherit_rot=False, inherit_trans=False,
 				has_fixedaxis=False, has_localaxis=False, has_externalparent=False, has_ik=True,
-				ik_target_idx=leg_idx+3, ik_numloops=newik_loops, ik_angle=newik_angle,
-				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx + 2)]
+				ik_target_idx=leg_idx + 1, ik_numloops=newik_loops, ik_angle=newik_angle,
+				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx)]
 			)
-			insert_single_bone(pmx, newfeetik, leg_idx + 6)
+			insert_single_bone(pmx, newfeetik, leg_idx + 1)
 
-			# then add to dispframe
-			# first, does the frame already exist?
-			f = core.my_list_search(pmx.frames, lambda x: x.name_jp == jp_newik, getitem=True)
-			if f is None:
-				# need to create the new dispframe! easy
-				newframe = pmxstruct.PmxFrame(name_jp=jp_ik_dp, name_en=en_newik, is_special=False, items=[[0, shoulder_idx + 4]])
-				pmx.frames.append(newframe)
-			else:
-				# frame already exists, also easy
-				f.items.append([0, shoulder_idx + 4])
-	else:
-		# remove IK branch
-		core.MY_PRINT_FUNC(">>>> Removing arm IK <<<")
-		# set output name
-		if input_filename_pmx.lower().endswith(pmx_yesik_suffix.lower()):
-			output_filename = input_filename_pmx[0:-(len(pmx_yesik_suffix))] + pmx_noik_suffix
-		else:
-			output_filename = input_filename_pmx[0:-4] + pmx_noik_suffix
-		# identify all bones in ik chain of hand ik bones
-		bone_dellist = []
-		for b in [r, l]:
-			bone_dellist.append(b) # this IK bone
-			bone_dellist.append(pmx.bones[b].ik_target_idx) # the target of the bone
-			for v in pmx.bones[b].ik_links:
-				bone_dellist.append(v.idx) # each link along the bone
-		bone_dellist.sort()
-		# do the actual delete & shift
-		delete_multiple_bones(pmx, bone_dellist)
-		
-		# delete dispframe for hand ik
-		# first, does the frame already exist?
-		f = core.my_list_search(pmx.frames, lambda x: x.name_jp == jp_newik)
-		if f is not None:
-			# frame already exists, delete it
-			pmx.frames.pop(f)
-		
-		pass
-	
-	# write out
+
+			newlegik = pmxstruct.PmxBone(
+				name_jp=side + jp_thigh_IK, name_en= Leg_IK + en_suffix, pos=bones[5].pos,
+				parent_idx=mother, deform_layer=bones[5].deform_layer, deform_after_phys=bones[2].deform_after_phys,
+				has_rotate=True, has_translate=True, has_visible=True, has_enabled=True,
+				tail_usebonelink=False, tail=[0,0,1], inherit_rot=False, inherit_trans=False,
+				has_fixedaxis=False, has_localaxis=False, has_externalparent=False, has_ik=True,
+				ik_target_idx=leg_idx, ik_numloops=newik_loops, ik_angle=newik_angle,
+				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx -1)]
+			)
+			insert_single_bone(pmx, newlegik, leg_idx + 1)
+
+			newkneeik = pmxstruct.PmxBone(
+				name_jp=side + jp_knee_IK, name_en= Knee_IK + en_suffix, pos=bones[4].pos,
+				parent_idx=mother, deform_layer=bones[4].deform_layer, deform_after_phys=bones[2].deform_after_phys,
+				has_rotate=True, has_translate=True, has_visible=True, has_enabled=True,
+				tail_usebonelink=False, tail=[0,0,1], inherit_rot=False, inherit_trans=False,
+				has_fixedaxis=False, has_localaxis=False, has_externalparent=False, has_ik=True,
+				ik_target_idx=leg_idx - 1, ik_numloops=newik_loops, ik_angle=newik_angle,
+				ik_links=[pmxstruct.PmxBoneIkLink(idx=leg_idx -2)]
+			)
+			insert_single_bone(pmx, newkneeik, leg_idx + 1)
+
+	pmxlib.write_pmx("temp.pmx", pmx)
+	pmx = pmxlib.read_pmx("temp.pmx", moreinfo=True)
+
+	# find the indexes of the bones we want to modify
+	LfeetIKindex = core.my_list_search(pmx.bones, lambda x: x.name_jp == "左" + jp_feet_IK)
+	RfeetIKindex = core.my_list_search(pmx.bones, lambda x: x.name_jp == "右" + jp_feet_IK)
+	LthighIKindex = core.my_list_search(pmx.bones, lambda x: x.name_jp == "左" + jp_thigh_IK)
+	RthighIKindex = core.my_list_search(pmx.bones, lambda x: x.name_jp == "右" + jp_thigh_IK)
+
+	# Edit the feet parent_idx to the thighIK position.
+	pmx.bones[LfeetIKindex].parent_idx=LthighIKindex
+	pmx.bones[RfeetIKindex].parent_idx=RthighIKindex
+
 	output_filename = core.get_unused_file_name(output_filename)
 	pmxlib.write_pmx(output_filename, pmx, moreinfo=moreinfo)
-	core.MY_PRINT_FUNC("Done!")
+
+	os.remove("temp.pmx")
+
 	return None
 
 
